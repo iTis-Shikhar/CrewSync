@@ -404,3 +404,292 @@ body {
   background-position: right .7em top 50%;
   background-size: .65em auto;
 }
+/* === Volunteer Roster Styles === */
+
+.management-section h3 {
+  font-size: 1.5rem;
+  color: #fff;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.roster-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.add-volunteer-form, .roster-list {
+  background-color: #111827; /* Slightly darker than page content */
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.add-volunteer-form h4, .roster-list h4 {
+  margin-top: 0;
+  color: #fff;
+  border-bottom: 1px solid #374151;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.add-volunteer-form p {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  margin-top: 0;
+}
+
+.add-volunteer-form .btn {
+  width: 100%;
+}
+
+.roster-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 300px; /* Give the list a max height and scrollbar if it gets long */
+  overflow-y: auto;
+}
+
+.roster-item {
+  background-color: #1f2937;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  color: #d1d5db;
+}
+
+/* Responsive layout for roster */
+@media (max-width: 768px) {
+  .roster-container {
+    grid-template-columns: 1fr;
+  }
+}
+/* === Shift Management Styles === */
+
+.shift-container {
+  display: grid;
+  grid-template-columns: 1fr 2fr; /* Form on left, list on right */
+  gap: 2rem;
+}
+
+.create-shift-form, .shift-list {
+  background-color: #111827;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.create-shift-form h4, .shift-list h4 {
+  margin-top: 0;
+  color: #fff;
+  border-bottom: 1px solid #374151;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.create-shift-form .btn {
+  width: 100%;
+}
+
+.shift-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.shift-item {
+  background-color: #1f2937;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.shift-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.shift-name {
+  font-weight: 600;
+  color: #fff;
+}
+
+.shift-time {
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.shift-assignment .assigned-volunteer {
+  font-weight: 600;
+  color: #a78bfa; /* Purple to show it's assigned */
+  background-color: #3730a3; /* Darker purple bg */
+  padding: 0.4rem 0.8rem;
+  border-radius: 50px;
+}
+
+.assign-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.assign-controls .role-select {
+  min-width: 180px;
+  padding: 0.5rem; /* Smaller padding for inline use */
+  font-size: 0.9rem;
+}
+
+.assign-controls .btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px; /* Squarer button for this context */
+}
+
+/* Responsive layout for shifts */
+@media (max-width: 992px) {
+  .shift-container {
+    grid-template-columns: 1fr;
+  }
+}
+/* === Delete Button Styles === */
+
+.btn-danger {
+  background-color: #be123c; /* Rose */
+  color: #fff;
+  border-color: #be123c;
+}
+
+.btn-danger:hover {
+  background-color: #9f1239;
+  border-color: #9f1239;
+}
+
+.event-actions {
+  gap: 0.5rem; /* Add gap for multiple buttons */
+}
+
+.roster-item, .shift-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-remove {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0 0.5rem;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.btn-remove:hover {
+  color: #fca5a5; /* Light red */
+}
+/* === Volunteer Dashboard Styles === */
+
+.my-shifts-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.my-shift-item {
+  background-color: #1f2937;
+  padding: 1.25rem 1.5rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  border-left: 4px solid #16a34a; /* Green accent for volunteers */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.my-shift-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.my-shift-name {
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+.my-shift-time {
+  font-size: 1rem;
+  color: #9ca3af;
+}
+
+.my-shift-status span {
+  font-weight: 600;
+  color: #4ade80; /* Light green */
+  background-color: #15803d; /* Darker green */
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+}
+/* === Final Navbar Styles === */
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.nav-link-dashboard {
+  font-weight: 700 !important;
+  color: #fff !important;
+  background-color: #374151;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+
+.nav-user-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: 1rem;
+  padding-left: 2rem;
+  border-left: 1px solid #374151;
+}
+
+.user-greeting {
+  color: #d1d5db;
+  font-weight: 600;
+}
+/* === Attendance Status Styles === */
+
+.status-confirmed, .status-pending {
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+}
+
+.status-confirmed {
+  color: #4ade80; /* Light green */
+  background-color: #15803d; /* Darker green */
+}
+
+.status-pending {
+  color: #fcd34d; /* Light yellow */
+  background-color: #b45309; /* Darker yellow/orange */
+}
+
+.btn-confirm {
+  background-color: #16a34a; /* Green */
+  color: #fff;
+  border-color: #16a34a;
+}
+
+.btn-confirm:hover {
+  background-color: #15803d;
+  border-color: #15803d;
+}
