@@ -17,31 +17,37 @@ function App() {
   const [loadingFirebase, setLoadingFirebase] = useState(true);
   const [error, setError] = useState(null);
 
-  // IMPORTANT: PASTE ONLY YOUR FIREBASE CONFIG OBJECT HERE!
-  // Do NOT paste any 'import' statements or other code inside these curly braces.
+  // IMPORTANT: localFirebaseConfig now reads the API key from the .env file.
+  // You MUST replace the placeholder values for authDomain, projectId, etc.,
+  // with YOUR ACTUAL VALUES from your Firebase Console.
+  // Make sure these match the config you copied when setting up your Firebase web app.
   const localFirebaseConfig = {
-    // --- START PASTE YOUR FIREBASE CONFIG OBJECT HERE ---
-     apiKey: "AIzaSyBdijWgx_QZQqlflj-993H5c-MYc5fpIQE",
+    apiKey: process.env.REACT_APP_FIREBASE_API_KEY, // This reads from your .env file!
   authDomain: "crewsynchackathon.firebaseapp.com",
   projectId: "crewsynchackathon",
   storageBucket: "crewsynchackathon.firebasestorage.app",
   messagingSenderId: "732421258194",
   appId: "1:732421258194:web:33369a868afe9ad885660b"
-    // --- END PASTE YOUR FIREBASE CONFIG OBJECT HERE ---
   };
 
   // useEffect for Firebase initialization
   useEffect(() => {
     const setupFirebase = async () => {
       try {
-        // Safely access Canvas-provided globals, falling back for local development
-        const currentFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : localFirebaseConfig;
-        const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Fallback for local
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; // Fallback for local
+        // Safely access Canvas-provided globals, falling back to local values for local development
+        const currentFirebaseConfig =
+          typeof __firebase_config !== 'undefined' && __firebase_config !== null
+            ? JSON.parse(__firebase_config)
+            : localFirebaseConfig;
 
-        // Basic check to ensure config is present
+        const initialAuthToken =
+          typeof __initial_auth_token !== 'undefined' && __initial_auth_token !== null
+            ? __initial_auth_token
+            : null;
+
+        // Basic check to ensure config is present and has an API key
         if (!currentFirebaseConfig || !currentFirebaseConfig.apiKey) {
-          throw new Error("Firebase configuration is missing or incomplete. Please ensure it's pasted correctly in localFirebaseConfig or provided by the environment.");
+          throw new Error("Firebase configuration is missing or incomplete. Please ensure REACT_APP_FIREBASE_API_KEY is set in your .env file and other config values are correct in App.js.");
         }
 
         const app = initializeApp(currentFirebaseConfig);
