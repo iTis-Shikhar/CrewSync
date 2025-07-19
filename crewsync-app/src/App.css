@@ -236,3 +236,104 @@ body {
   border-radius: 6px;
   margin-bottom: 1rem;
 }
+/* === Navbar Styles === */
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid #374151; /* Dark gray border */
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.logo-svg {
+  width: 45px;
+  height: 45px;
+  transition: transform 0.3s ease;
+}
+
+.logo-container:hover .logo-svg {
+  transform: rotate(-15deg);
+}
+
+.btn-logout {
+  background-color: #be123c; /* Rose color */
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-left: 2rem;
+  transition: background-color 0.3s ease;
+}
+
+.btn-logout:hover {
+  background-color: #9f1239;
+}
+
+
+/* === Stacked Landing Page Buttons === */
+.cta-buttons-stacked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cta-buttons-stacked .btn {
+  width: 100%;
+  max-width: 250px;
+}
+
+/* === Generic Page Content Styles (for About/Help) === */
+.page-content {
+  background-color: #1f2937;
+  padding: 2rem 3rem;
+  border-radius: 8px;
+  margin-top: 2rem;
+  border: 1px solid #374151;
+}
+
+.page-content h1 {
+  font-size: 2.5rem;
+  border-bottom: 2px solid #4f46e5;
+  padding-bottom: 0.5rem;
+  margin-top: 0;
+}
+
+.page-content h3 {
+  font-size: 1.5rem;
+  color: #a78bfa;
+  margin-top: 2rem;
+}
+
+.page-content p {
+  line-height: 1.7;
+  color: #d1d5db;
+}
+/* === Role Selector Styles === */
+.role-select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #4b5563;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+  background-color: #374151;
+  color: #f3f4f6;
+  -webkit-appearance: none; /* Removes default browser styling */
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23d1d5db%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+  background-repeat: no-repeat;
+  background-position: right .7em top 50%;
+  background-size: .65em auto;
+}

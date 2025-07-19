@@ -1,27 +1,32 @@
 import React, { useState, useEffect, createContext } from 'react';
 import './App.css';
 
-// Import components from their new location
+// Import all our components
+import Navbar from './components/Navbar';
 import LandingPage from './components/LandingPage';
 import Auth from './components/Auth';
-import Dashboard from './components/Dashboard';
+import AdminDashboard from './components/AdminDashboard'; // Renamed
+import VolunteerDashboard from './components/VolunteerDashboard'; // New
+import AboutPage from './components/AboutPage';
+import HelpPage from './components/HelpPage';
 
 // Firebase Imports
 import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
+import { getFirestore, doc, getDoc } from "firebase/firestore"; // Import getDoc
 
 export const FirebaseContext = createContext(null);
 
 function App() {
   // State for Firebase and user
   const [auth, setAuth] = useState(null);
+  const [db, setDb] = useState(null);
   const [userId, setUserId] = useState(null);
+  // NEW STATE: To store the logged-in user's role
+  const [userRole, setUserRole] = useState(null);
   const [loadingFirebase, setLoadingFirebase] = useState(true);
+  const [page, setPage] = useState('landing');
 
-  // NEW STATE: Manages which page is currently visible
-  const [page, setPage] = useState('landing'); // 'landing', 'login', 'register', or 'dashboard'
-
-  // Your Firebase config
   const firebaseConfig = {
     apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
     authDomain: "crewsynchackathon.firebaseapp.com",
@@ -31,54 +36,63 @@ function App() {
     appId: "1:732421258194:web:33369a868afe9ad885660b"
   };
 
-  // Initialize Firebase and set up auth listener
   useEffect(() => {
-    try {
-      const app = initializeApp(firebaseConfig);
-      const authInstance = getAuth(app);
-      setAuth(authInstance);
+    const app = initializeApp(firebaseConfig);
+    const authInstance = getAuth(app);
+    const dbInstance = getFirestore(app);
+    setAuth(authInstance);
+    setDb(dbInstance);
 
-      onAuthStateChanged(authInstance, (user) => {
-        if (user) {
-          setUserId(user.uid);
-          // If a user is logged in, automatically take them to the dashboard
-          setPage('dashboard');
+    onAuthStateChanged(authInstance, async (user) => {
+      if (user) {
+        // --- USER IS LOGGED IN ---
+        setUserId(user.uid);
+        // Now, fetch their role from Firestore
+        const userDocRef = doc(dbInstance, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          setUserRole(userData.role); // Set the user's role
         } else {
-          setUserId(null);
-          // If no user, and they aren't trying to log in/register, show landing page
-          if (page === 'dashboard') {
-            setPage('landing');
-          }
+          // This case might happen if a user exists in Auth but not in Firestore
+          console.log("User document not found in Firestore!");
+          setUserRole(null);
         }
-        setLoadingFirebase(false);
-      });
-    } catch (e) {
-      console.error("Firebase Initialization Error:", e);
+        setPage('dashboard');
+      } else {
+        // --- USER IS LOGGED OUT ---
+        setUserId(null);
+        setUserRole(null);
+        if (page === 'dashboard') {
+          setPage('landing');
+        }
+      }
       setLoadingFirebase(false);
-    }
-  }, [page]); // Re-run effect if page state changes
+    });
+  }, []); // Run only once
 
   const handleLogout = () => {
     signOut(auth).catch((error) => console.error("Logout Error:", error));
   };
 
-  // Render a loading message while Firebase is initializing
   if (loadingFirebase) {
     return <div className="loading-container"><p>Loading CrewSync...</p></div>;
   }
 
-  // Main render logic based on the 'page' state
   const renderPage = () => {
     switch (page) {
-      case 'login':
-        // We pass 'login' to the Auth component to tell it which mode to be in
-        return <Auth isInitialLogin={true} />;
-      case 'register':
-        // We pass 'register' to the Auth component
-        return <Auth isInitialLogin={false} />;
+      case 'login': return <Auth isInitialLogin={true} />;
+      case 'register': return <Auth isInitialLogin={false} />;
+      case 'about': return <AboutPage />;
+      case 'help': return <HelpPage />;
       case 'dashboard':
-        // Show dashboard only if a user is actually logged in
-        return userId ? <Dashboard handleLogout={handleLogout} /> : <LandingPage setPage={setPage} />;
+        // --- ROLE-BASED ROUTING ---
+        if (!userId) return <LandingPage setPage={setPage} />; // Should not happen, but a safeguard
+        if (userRole === 'admin') return <AdminDashboard />;
+        if (userRole === 'volunteer') return <VolunteerDashboard />;
+        // Fallback while role is loading or if role is not found
+        return <div className="loading-container"><p>Loading Dashboard...</p></div>;
       case 'landing':
       default:
         return <LandingPage setPage={setPage} />;
@@ -86,9 +100,10 @@ function App() {
   };
 
   return (
-    <FirebaseContext.Provider value={{ auth, userId }}>
+    <FirebaseContext.Provider value={{ auth, db, userId, userRole }}>
       <div className="app-container">
-        {renderPage()}
+        <Navbar setPage={setPage} userId={userId} handleLogout={handleLogout} />
+        <main>{renderPage()}</main>
       </div>
     </FirebaseContext.Provider>
   );
