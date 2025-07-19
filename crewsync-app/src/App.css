@@ -636,3 +636,60 @@ body {
   border-radius: 50px;
   font-size: 0.9rem;
 }
+/* === Final Navbar Styles === */
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.nav-link-dashboard {
+  font-weight: 700 !important;
+  color: #fff !important;
+  background-color: #374151;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+
+.nav-user-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: 1rem;
+  padding-left: 2rem;
+  border-left: 1px solid #374151;
+}
+
+.user-greeting {
+  color: #d1d5db;
+  font-weight: 600;
+}
+/* === Attendance Status Styles === */
+
+.status-confirmed, .status-pending {
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+}
+
+.status-confirmed {
+  color: #4ade80; /* Light green */
+  background-color: #15803d; /* Darker green */
+}
+
+.status-pending {
+  color: #fcd34d; /* Light yellow */
+  background-color: #b45309; /* Darker yellow/orange */
+}
+
+.btn-confirm {
+  background-color: #16a34a; /* Green */
+  color: #fff;
+  border-color: #16a34a;
+}
+
+.btn-confirm:hover {
+  background-color: #15803d;
+  border-color: #15803d;
+}

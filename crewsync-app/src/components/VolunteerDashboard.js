@@ -1,57 +1,65 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { FirebaseContext } from '../App';
-import { collectionGroup, query, where, onSnapshot } from "firebase/firestore";
+import { collectionGroup, query, where, onSnapshot, updateDoc } from "firebase/firestore";
 
 function VolunteerDashboard() {
-  // Get the database instance and the current volunteer's user ID
   const { db, userId } = useContext(FirebaseContext);
-  
   const [myShifts, setMyShifts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (!db || !userId) return;
-
-    // This is a collection group query. It looks at ALL 'shifts' collections
-    // across the entire database, no matter which event they are nested under.
     const shiftsQuery = query(
       collectionGroup(db, 'shifts'), 
-      where('assignedVolunteer', '==', userId) // But it ONLY returns shifts where the assignedVolunteer field matches the current user's ID.
+      where('assignedVolunteer', '==', userId)
     );
-
     const unsubscribe = onSnapshot(shiftsQuery, (querySnapshot) => {
-      const shiftsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // The collectionGroup query gives us a special 'ref' property on each doc
+      // which is a direct path to the document, perfect for updates!
+      const shiftsData = querySnapshot.docs.map(doc => ({ id: doc.id, ref: doc.ref, ...doc.data() }));
       setMyShifts(shiftsData);
       setLoading(false);
     }, (err) => {
-      console.error("Error fetching shifts: ", err);
       setError("Could not load your schedule. Please try again later.");
       setLoading(false);
     });
-
-    // Cleanup the listener when the component unmounts
     return () => unsubscribe();
-
   }, [db, userId]);
 
+  // NEW: Function for volunteer to check themselves in
+  const handleCheckIn = async (shiftRef) => {
+    try {
+      await updateDoc(shiftRef, {
+        attendanceStatus: 'checked-in'
+      });
+    } catch (err) {
+      console.error("Check-in failed: ", err);
+      alert("Could not check in. Please try again.");
+    }
+  };
+
+  const renderStatus = (shift) => {
+    switch (shift.attendanceStatus) {
+      case 'confirmed':
+        return <span className="status-confirmed">Present & Confirmed</span>;
+      case 'checked-in':
+        return <span className="status-pending">Awaiting Confirmation</span>;
+      case 'unconfirmed':
+      default:
+        return <button className="btn btn-primary" onClick={() => handleCheckIn(shift.ref)}>Check-in</button>;
+    }
+  };
 
   return (
     <div className="page-content">
       <h1>My Schedule</h1>
-      <p>
-        Thank you for your commitment! Here are your assigned shifts and duties.
-      </p>
+      <p>Thank you for your commitment! Check-in for your shift when you arrive.</p>
       <hr className="divider" />
-      
       <div className="my-shifts-list">
         {loading && <p>Loading your schedule...</p>}
         {error && <p className="error-message">{error}</p>}
-        
-        {!loading && myShifts.length === 0 && (
-          <p>You have no assigned shifts yet. Check back soon!</p>
-        )}
-
+        {!loading && myShifts.length === 0 && <p>You have no assigned shifts yet.</p>}
         {myShifts.length > 0 && (
           <ul>
             {myShifts.map(shift => (
@@ -59,11 +67,9 @@ function VolunteerDashboard() {
                 <div className="my-shift-details">
                   <span className="my-shift-name">{shift.name}</span>
                   <span className="my-shift-time">{shift.startTime} - {shift.endTime}</span>
-                  {/* We can add the event name here in the future if we store it on the shift */}
                 </div>
                 <div className="my-shift-status">
-                  {/* We will add attendance marking here in the final phase */}
-                  <span>Confirmed</span>
+                  {renderStatus(shift)}
                 </div>
               </li>
             ))}

@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-// Import Firebase tools
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, doc, setDoc } from "firebase/firestore";
 
 function Auth({ isInitialLogin }) {
   const [isLogin, setIsLogin] = useState(isInitialLogin);
+  // NEW STATE for the user's name
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  // NEW STATE: To hold the selected role
-  const [role, setRole] = useState('volunteer'); // Default to 'volunteer'
+  const [role, setRole] = useState('volunteer');
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
@@ -18,29 +18,25 @@ function Auth({ isInitialLogin }) {
     const db = getFirestore();
 
     if (isLogin) {
-      // Login logic remains the same
+      // Login logic is unchanged
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        // App.js will handle redirecting after login
       } catch (err) {
         setError(err.message);
       }
     } else {
-      // --- REGISTRATION LOGIC ---
+      // Registration logic now includes the name
       try {
-        // Step 1: Create the user in Firebase Authentication
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Step 2: Create a document in the 'users' collection in Firestore
-        // The document ID will be the same as the user's UID from Authentication
+        // Save the user's profile, now including their name
         await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
           email: user.email,
-          role: role // Save the selected role
+          role: role,
+          name: fullName // <-- Save the name here
         });
-        
-        // After successful registration, App.js will automatically log them in
-        // and redirect them to their new dashboard.
 
       } catch (err) {
         setError(err.message);
@@ -53,6 +49,14 @@ function Auth({ isInitialLogin }) {
       <form onSubmit={handleSubmit} className="auth-form">
         <h2>{isLogin ? 'Login' : 'Register'}</h2>
         
+        {/* NEW: Full Name field, only shown on register form */}
+        {!isLogin && (
+          <div className="form-group">
+            <label htmlFor="fullName">Full Name</label>
+            <input type="text" id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+          </div>
+        )}
+        
         <div className="form-group">
           <label htmlFor="email">Email</label>
           <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -63,8 +67,6 @@ function Auth({ isInitialLogin }) {
           <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </div>
 
-        {/* --- NEW: ROLE SELECTOR --- */}
-        {/* This block only appears on the Register form */}
         {!isLogin && (
           <div className="form-group">
             <label htmlFor="role">Register as...</label>
