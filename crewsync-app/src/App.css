@@ -337,3 +337,61 @@ body {
   background-position: right .7em top 50%;
   background-size: .65em auto;
 }
+/* === Event Management Styles === */
+
+.divider {
+  border: none;
+  height: 1px;
+  background-color: #374151;
+  margin: 2rem 0;
+}
+
+.event-management-container {
+  display: grid;
+  grid-template-columns: 1fr 2fr; /* Form on the left, list on the right */
+  gap: 2rem;
+}
+
+.create-event-form h3, .event-list h3 {
+  font-size: 1.5rem;
+  color: #fff;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.create-event-form .form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+  font-family: 'Poppins', sans-serif; /* Ensure textarea uses the correct font */
+}
+
+.event-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.event-item {
+  background-color: #374151; /* Darker gray */
+  padding: 1rem 1.5rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  border-left: 4px solid #4f46e5; /* Indigo accent */
+}
+
+.event-item h4 {
+  margin: 0 0 0.5rem 0;
+  color: #fff;
+}
+
+.event-item p {
+  margin: 0.25rem 0;
+  color: #d1d5db;
+}
+
+/* Responsive layout for smaller screens */
+@media (max-width: 768px) {
+  .event-management-container {
+    grid-template-columns: 1fr; /* Stack them on top of each other */
+  }
+}

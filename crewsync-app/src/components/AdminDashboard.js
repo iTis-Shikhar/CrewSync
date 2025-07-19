@@ -1,23 +1,18 @@
 import React from 'react';
+import EventManagement from './EventManagement'; // Import the new component
 
-// This is the dashboard for Event Organizers (Admins)
 function AdminDashboard() {
   return (
     <div className="page-content">
       <h1>Admin Dashboard</h1>
       <p>
-        Welcome, Event Organizer! You have full access to manage this event.
+        Welcome, Event Organizer! Use the form below to create and manage your events.
       </p>
-      
-      <h3>Next Steps:</h3>
-      <ul>
-        <li>Build the "Create Event" form.</li>
-        <li>Display a list of all current events.</li>
-        <li>Add functionality to manage volunteers and assign shifts.</li>
-      </ul>
+      <hr className="divider" />
+      {/* Render the EventManagement component here */}
+      <EventManagement />
     </div>
   );
 }
 
-// Ensure the component is exported correctly
 export default AdminDashboard;
