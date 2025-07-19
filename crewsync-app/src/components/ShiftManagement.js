@@ -9,15 +9,33 @@ function ShiftManagement({ eventId, roster }) {
   const [endTime, setEndTime] = useState('');
   const [shifts, setShifts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedVolunteer, setSelectedVolunteer] = useState('');
+  const [error, setError] = useState(''); // Added error state
+  const [assignmentState, setAssignmentState] = useState({});
 
   useEffect(() => {
-    if (!db || !eventId) return;
-    const q = query(collection(db, "events", eventId, "shifts"));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      setShifts(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    if (!db || !eventId) {
       setLoading(false);
-    });
+      return;
+    }
+    
+    setLoading(true); // Reset loading state on each run
+    const q = query(collection(db, "events", eventId, "shifts"));
+
+    const unsubscribe = onSnapshot(q, 
+      (querySnapshot) => {
+        // Success case
+        const shiftsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setShifts(shiftsData);
+        setLoading(false); // <-- This is correct
+      }, 
+      (err) => {
+        // Error case
+        console.error("Error fetching shifts:", err);
+        setError("Failed to load shifts. Please check your permissions and internet connection.");
+        setLoading(false); // <-- THIS WAS THE MISSING PIECE
+      }
+    );
+    
     return () => unsubscribe();
   }, [db, eventId]);
 
@@ -32,8 +50,16 @@ function ShiftManagement({ eventId, roster }) {
     } catch (err) { console.error("Error creating shift: ", err); }
   };
 
-  const handleAssignVolunteer = async (shiftId, volunteerId) => {
-    if (!volunteerId) return;
+  const handleSelectionChange = (shiftId, volunteerId) => {
+    setAssignmentState(prevState => ({ ...prevState, [shiftId]: volunteerId }));
+  };
+
+  const handleAssignVolunteer = async (shiftId) => {
+    const volunteerId = assignmentState[shiftId];
+    if (!volunteerId) {
+      alert("Please select a volunteer from the dropdown first.");
+      return;
+    }
     const volunteer = roster.find(v => v.uid === volunteerId);
     if (!volunteer) return;
     const shiftDocRef = doc(db, "events", eventId, "shifts", shiftId);
@@ -52,7 +78,6 @@ function ShiftManagement({ eventId, roster }) {
       <div className="shift-container">
         <div className="create-shift-form">
           <h4>Create New Shift</h4>
-          {/* THIS IS THE FORM THAT WAS MISSING */}
           <form onSubmit={handleCreateShift}>
             <div className="form-group">
               <label htmlFor="shiftName">Shift Name / Duty</label>
@@ -72,34 +97,36 @@ function ShiftManagement({ eventId, roster }) {
         <div className="shift-list">
           <h4>Scheduled Shifts ({shifts.length})</h4>
           {loading && <p>Loading shifts...</p>}
-          {shifts.length > 0 ? (
-            <ul>
-              {shifts.map(shift => (
-                <li key={shift.id} className="shift-item">
-                  <div className="shift-details">
-                    <span className="shift-name">{shift.name}</span>
-                    <span className="shift-time">{shift.startTime} - {shift.endTime}</span>
-                  </div>
-                  {/* THESE ARE THE ASSIGNMENT CONTROLS THAT WERE MISSING */}
-                  <div className="shift-assignment">
-                    {shift.assignedVolunteer ? (
-                      <span className="assigned-volunteer">{shift.assignedVolunteerEmail}</span>
-                    ) : (
-                      <div className="assign-controls">
-                        <select className="role-select" onChange={(e) => setSelectedVolunteer(e.target.value)}>
-                          <option value="">Assign a volunteer...</option>
-                          {roster.map(v => <option key={v.uid} value={v.uid}>{v.email}</option>)}
-                        </select>
-                        <button className="btn btn-secondary" onClick={() => handleAssignVolunteer(shift.id, selectedVolunteer)}>Assign</button>
-                      </div>
-                    )}
-                  </div>
-                  <button className="btn-remove" onClick={() => handleDeleteShift(shift.id)}>×</button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            !loading && <p>No shifts created for this event yet.</p>
+          {error && <p className="error-message">{error}</p>}
+          {!loading && !error && (
+            shifts.length > 0 ? (
+              <ul>
+                {shifts.map(shift => (
+                  <li key={shift.id} className="shift-item">
+                    <div className="shift-details">
+                      <span className="shift-name">{shift.name}</span>
+                      <span className="shift-time">{shift.startTime} - {shift.endTime}</span>
+                    </div>
+                    <div className="shift-assignment">
+                      {shift.assignedVolunteer ? (
+                        <span className="assigned-volunteer">{shift.assignedVolunteerEmail}</span>
+                      ) : (
+                        <div className="assign-controls">
+                          <select className="role-select" onChange={(e) => handleSelectionChange(shift.id, e.target.value)}>
+                            <option value="">Assign a volunteer...</option>
+                            {roster.map(v => <option key={v.uid} value={v.uid}>{v.email}</option>)}
+                          </select>
+                          <button className="btn btn-secondary" onClick={() => handleAssignVolunteer(shift.id)}>Assign</button>
+                        </div>
+                      )}
+                    </div>
+                    <button className="btn-remove" onClick={() => handleDeleteShift(shift.id)}>×</button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No shifts created for this event yet.</p>
+            )
           )}
         </div>
       </div>

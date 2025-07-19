@@ -593,3 +593,46 @@ body {
 .btn-remove:hover {
   color: #fca5a5; /* Light red */
 }
+/* === Volunteer Dashboard Styles === */
+
+.my-shifts-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.my-shift-item {
+  background-color: #1f2937;
+  padding: 1.25rem 1.5rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  border-left: 4px solid #16a34a; /* Green accent for volunteers */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.my-shift-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.my-shift-name {
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+.my-shift-time {
+  font-size: 1rem;
+  color: #9ca3af;
+}
+
+.my-shift-status span {
+  font-weight: 600;
+  color: #4ade80; /* Light green */
+  background-color: #15803d; /* Darker green */
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+}
