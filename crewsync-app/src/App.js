@@ -5,27 +5,31 @@ import './App.css';
 import Navbar from './components/Navbar';
 import LandingPage from './components/LandingPage';
 import Auth from './components/Auth';
-import AdminDashboard from './components/AdminDashboard'; // Renamed
-import VolunteerDashboard from './components/VolunteerDashboard'; // New
+import AdminDashboard from './components/AdminDashboard';
+import VolunteerDashboard from './components/VolunteerDashboard';
 import AboutPage from './components/AboutPage';
 import HelpPage from './components/HelpPage';
+import CreateEventForm from './components/CreateEventForm';
+import EventList from './components/EventList';
+import ManageEventPage from './components/ManageEventPage';
 
 // Firebase Imports
 import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-import { getFirestore, doc, getDoc } from "firebase/firestore"; // Import getDoc
+import { getFirestore, doc, getDoc } from "firebase/firestore";
 
 export const FirebaseContext = createContext(null);
 
 function App() {
-  // State for Firebase and user
   const [auth, setAuth] = useState(null);
   const [db, setDb] = useState(null);
   const [userId, setUserId] = useState(null);
-  // NEW STATE: To store the logged-in user's role
   const [userRole, setUserRole] = useState(null);
   const [loadingFirebase, setLoadingFirebase] = useState(true);
+  
+  // Navigation state
   const [page, setPage] = useState('landing');
+  const [selectedEventId, setSelectedEventId] = useState(null);
 
   const firebaseConfig = {
     apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -45,32 +49,24 @@ function App() {
 
     onAuthStateChanged(authInstance, async (user) => {
       if (user) {
-        // --- USER IS LOGGED IN ---
         setUserId(user.uid);
-        // Now, fetch their role from Firestore
         const userDocRef = doc(dbInstance, "users", user.uid);
         const userDocSnap = await getDoc(userDocRef);
-
         if (userDocSnap.exists()) {
-          const userData = userDocSnap.data();
-          setUserRole(userData.role); // Set the user's role
-        } else {
-          // This case might happen if a user exists in Auth but not in Firestore
-          console.log("User document not found in Firestore!");
-          setUserRole(null);
+          setUserRole(userDocSnap.data().role);
         }
-        setPage('dashboard');
+        // Don't auto-navigate here to preserve navigation state
       } else {
-        // --- USER IS LOGGED OUT ---
         setUserId(null);
         setUserRole(null);
-        if (page === 'dashboard') {
+        // If user logs out, send them to the landing page
+        if (page.startsWith('dashboard') || page.startsWith('event') || page.startsWith('manage')) {
           setPage('landing');
         }
       }
       setLoadingFirebase(false);
     });
-  }, []); // Run only once
+  }, []);
 
   const handleLogout = () => {
     signOut(auth).catch((error) => console.error("Logout Error:", error));
@@ -81,18 +77,34 @@ function App() {
   }
 
   const renderPage = () => {
+    // If user is logged in, check their role and show the appropriate dashboard view
+    if (userId) {
+      if (userRole === 'admin') {
+        switch (page) {
+          case 'dashboard': return <AdminDashboard setPage={setPage} />;
+          case 'createEvent': return <CreateEventForm setPage={setPage} />;
+          case 'eventList': return <EventList setPage={setPage} setSelectedEventId={setSelectedEventId} />;
+          case 'manageEvent': return <ManageEventPage eventId={selectedEventId} setPage={setPage} />;
+          case 'about': return <AboutPage />;
+          case 'help': return <HelpPage />;
+          default: return <AdminDashboard setPage={setPage} />; // Default to main dashboard
+        }
+      } else if (userRole === 'volunteer') {
+        // Volunteer routing can be expanded here later
+        switch (page) {
+          case 'about': return <AboutPage />;
+          case 'help': return <HelpPage />;
+          default: return <VolunteerDashboard />;
+        }
+      }
+    }
+
+    // If no user is logged in, show public pages
     switch (page) {
       case 'login': return <Auth isInitialLogin={true} />;
       case 'register': return <Auth isInitialLogin={false} />;
       case 'about': return <AboutPage />;
       case 'help': return <HelpPage />;
-      case 'dashboard':
-        // --- ROLE-BASED ROUTING ---
-        if (!userId) return <LandingPage setPage={setPage} />; // Should not happen, but a safeguard
-        if (userRole === 'admin') return <AdminDashboard />;
-        if (userRole === 'volunteer') return <VolunteerDashboard />;
-        // Fallback while role is loading or if role is not found
-        return <div className="loading-container"><p>Loading Dashboard...</p></div>;
       case 'landing':
       default:
         return <LandingPage setPage={setPage} />;
