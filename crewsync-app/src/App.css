@@ -404,3 +404,64 @@ body {
   background-position: right .7em top 50%;
   background-size: .65em auto;
 }
+/* === Volunteer Roster Styles === */
+
+.management-section h3 {
+  font-size: 1.5rem;
+  color: #fff;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.roster-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.add-volunteer-form, .roster-list {
+  background-color: #111827; /* Slightly darker than page content */
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.add-volunteer-form h4, .roster-list h4 {
+  margin-top: 0;
+  color: #fff;
+  border-bottom: 1px solid #374151;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.add-volunteer-form p {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  margin-top: 0;
+}
+
+.add-volunteer-form .btn {
+  width: 100%;
+}
+
+.roster-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 300px; /* Give the list a max height and scrollbar if it gets long */
+  overflow-y: auto;
+}
+
+.roster-item {
+  background-color: #1f2937;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  color: #d1d5db;
+}
+
+/* Responsive layout for roster */
+@media (max-width: 768px) {
+  .roster-container {
+    grid-template-columns: 1fr;
+  }
+}
