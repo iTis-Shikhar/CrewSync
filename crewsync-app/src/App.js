@@ -15,6 +15,7 @@ import CreateEventForm from './components/CreateEventForm';
 import EventList from './components/EventList';
 import ManageEventPage from './components/ManageEventPage';
 import AnalyticsPage from './components/AnalyticsPage';
+import VolunteerManagementPage from './components/VolunteerManagementPage'; // The new page
 
 // Firebase Imports
 import { initializeApp } from 'firebase/app';
@@ -30,7 +31,7 @@ function App() {
   const [userRole, setUserRole] = useState(null);
   const [userName, setUserName] = useState(null);
   const [loadingFirebase, setLoadingFirebase] = useState(true);
-  const [error, setError] = useState(null); // State to hold any initialization errors
+  const [error, setError] = useState(null);
   
   const [page, setPage] = useState('landing');
   const [selectedEventId, setSelectedEventId] = useState(null);
@@ -45,7 +46,6 @@ function App() {
   };
 
   useEffect(() => {
-    // Re-introduced the try...catch block for robust error handling
     try {
       const app = initializeApp(firebaseConfig);
       const authInstance = getAuth(app);
@@ -76,23 +76,17 @@ function App() {
       });
     } catch (err) {
       console.error("Firebase Initialization Error:", err);
-      setError("Failed to initialize Firebase. Please check your configuration and internet connection.");
-      setLoadingFirebase(false); // This is crucial to stop the loading spinner on error
+      setError("Failed to initialize Firebase.");
+      setLoadingFirebase(false);
     }
-  }, []); // Run only once
+  }, []);
 
   const handleLogout = () => {
     signOut(auth).catch((error) => console.error("Logout Error:", error));
   };
 
-  if (loadingFirebase) {
-    return <LoadingSpinner />;
-  }
-  
-  // If an error occurred during initialization, show an error screen
-  if (error) {
-    return <div className="error-container"><p className="error-message">{error}</p></div>;
-  }
+  if (loadingFirebase) { return <LoadingSpinner />; }
+  if (error) { return <div className="error-container"><p className="error-message">{error}</p></div>; }
 
   const renderAdminContent = () => {
     switch (page) {
@@ -100,6 +94,7 @@ function App() {
       case 'eventList': return <EventList setPage={setPage} setSelectedEventId={setSelectedEventId} />;
       case 'manageEvent': return <ManageEventPage eventId={selectedEventId} setPage={setPage} />;
       case 'analytics': return <AnalyticsPage />;
+      case 'volunteers': return <VolunteerManagementPage />; // The new route
       case 'dashboard':
       default:
         return <AdminWorkspace setPage={setPage} />;

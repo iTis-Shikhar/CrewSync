@@ -893,3 +893,30 @@ body {
   color: #9ca3af;
   font-style: italic;
 }
+/* === Volunteer Management Table Styles === */
+.volunteer-table-container {
+  overflow-x: auto; /* Allows horizontal scrolling on small screens */
+}
+
+.volunteer-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+}
+
+.volunteer-table th, .volunteer-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #374151;
+}
+
+.volunteer-table th {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.volunteer-table tbody tr:hover {
+  background-color: #1f2937;
+}
