@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { FirebaseContext } from '../App';
 import { doc, getDoc, collection, addDoc, query, where, getDocs, onSnapshot, deleteDoc } from "firebase/firestore";
 import ShiftManagement from './ShiftManagement';
+import Announcements from './Announcements'; // Import the new component
 
 function ManageEventPage({ eventId, setPage }) {
   const { db } = useContext(FirebaseContext);
@@ -68,29 +69,24 @@ function ManageEventPage({ eventId, setPage }) {
       </div>
       <p className="event-date">Date: {event?.date}</p>
       <p>{event?.description}</p>
+      
+      {/* The new Announcements component is added here */}
+      <hr className="divider" />
+      <Announcements eventId={eventId} />
+
       <hr className="divider" />
       <div className="management-section">
         <h3>Volunteer Roster</h3>
         <div className="roster-container">
           <div className="add-volunteer-form">
             <h4>Add Volunteer to Roster</h4>
-            {/* THIS IS THE FORM THAT WAS MISSING */}
             <form onSubmit={handleAddVolunteer}>
               <p>Enter the email of a registered volunteer to add them to this event.</p>
               <div className="form-group">
                 <label htmlFor="volunteerEmail">Volunteer Email</label>
-                <input 
-                  type="email" 
-                  id="volunteerEmail" 
-                  value={volunteerEmail} 
-                  onChange={(e) => setVolunteerEmail(e.target.value)} 
-                  placeholder="volunteer@example.com"
-                  required 
-                />
+                <input type="email" id="volunteerEmail" value={volunteerEmail} onChange={(e) => setVolunteerEmail(e.target.value)} placeholder="volunteer@example.com" required />
               </div>
-              <button type="submit" className="btn btn-primary" disabled={isAdding}>
-                {isAdding ? 'Adding...' : 'Add Volunteer'}
-              </button>
+              <button type="submit" className="btn btn-primary" disabled={isAdding}>{isAdding ? 'Adding...' : 'Add Volunteer'}</button>
               {addVolunteerError && <p className="error-message">{addVolunteerError}</p>}
             </form>
           </div>
@@ -98,16 +94,9 @@ function ManageEventPage({ eventId, setPage }) {
             <h4>Current Roster ({roster.length})</h4>
             {roster.length > 0 ? (
               <ul>
-                {roster.map(volunteer => (
-                  <li key={volunteer.id} className="roster-item">
-                    <span>{volunteer.email}</span>
-                    <button className="btn-remove" onClick={() => handleRemoveVolunteer(volunteer.id)}>×</button>
-                  </li>
-                ))}
+                {roster.map(volunteer => (<li key={volunteer.id} className="roster-item"><span>{volunteer.email}</span><button className="btn-remove" onClick={() => handleRemoveVolunteer(volunteer.id)}>×</button></li>))}
               </ul>
-            ) : (
-              <p>No volunteers have been added to this event yet.</p>
-            )}
+            ) : (<p>No volunteers have been added to this event yet.</p>)}
           </div>
         </div>
       </div>

@@ -920,3 +920,53 @@ body {
 .volunteer-table tbody tr:hover {
   background-color: #1f2937;
 }
+/* === Announcement Styles === */
+.announcement-form-container {
+  background-color: #111827;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+.announcement-form-container p {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  margin-top: 0;
+}
+.announcement-form-container .btn {
+  width: 100%;
+}
+.announcement-feed {
+  background-color: #111827;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  border-left: 4px solid #f59e0b; /* Amber accent */
+}
+.announcement-feed h3 {
+  margin-top: 0;
+  color: #fff;
+  font-size: 1.5rem;
+}
+.announcement-item {
+  border-bottom: 1px solid #374151;
+  padding: 1rem 0;
+}
+.announcement-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.announcement-text {
+  margin: 0 0 0.5rem 0;
+  color: #f3f4f6;
+  font-size: 1rem;
+}
+.announcement-meta {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-style: italic;
+}
+/* === Scrollable Announcement Feed Styles === */
+.announcement-list {
+  max-height: 250px; /* Set a maximum height for the list */
+  overflow-y: auto; /* Add a vertical scrollbar only when needed */
+  padding-right: 1rem; /* Add some space for the scrollbar */
+}
