@@ -1,7 +1,7 @@
 import React, { useState, useEffect, createContext } from 'react';
 import './App.css';
 
-// Import all components
+// Import all components (except the one we're deleting)
 import Navbar from './components/Navbar';
 import LoadingSpinner from './components/LoadingSpinner';
 import LandingPage from './components/LandingPage';
@@ -15,7 +15,7 @@ import CreateEventForm from './components/CreateEventForm';
 import EventList from './components/EventList';
 import ManageEventPage from './components/ManageEventPage';
 import AnalyticsPage from './components/AnalyticsPage';
-import VolunteerManagementPage from './components/VolunteerManagementPage'; // The new page
+// We no longer import VolunteerManagementPage
 
 // Firebase Imports
 import { initializeApp } from 'firebase/app';
@@ -94,7 +94,7 @@ function App() {
       case 'eventList': return <EventList setPage={setPage} setSelectedEventId={setSelectedEventId} />;
       case 'manageEvent': return <ManageEventPage eventId={selectedEventId} setPage={setPage} />;
       case 'analytics': return <AnalyticsPage />;
-      case 'volunteers': return <VolunteerManagementPage />; // The new route
+      // The 'volunteers' case has been removed
       case 'dashboard':
       default:
         return <AdminWorkspace setPage={setPage} />;
@@ -102,32 +102,28 @@ function App() {
   };
 
   const renderPage = () => {
+    if (page === 'about') { return <main className="fade-in" key={page}><AboutPage /></main>; }
+    if (page === 'help') { return <main className="fade-in" key={page}><HelpPage /></main>; }
+
     if (userId) {
       if (userRole === 'admin') {
         return (
           <div className="admin-layout">
             <Sidebar page={page} setPage={setPage} />
-            <main className="admin-content">
+            <main className="admin-content fade-in" key={page}>
               {renderAdminContent()}
             </main>
           </div>
         );
       } else if (userRole === 'volunteer') {
-        switch (page) {
-          case 'dashboard': return <VolunteerDashboard />;
-          case 'about': return <AboutPage />;
-          case 'help': return <HelpPage />;
-          default: return <VolunteerDashboard />;
-        }
+        return <main className="fade-in" key={page}><VolunteerDashboard /></main>;
       }
     }
-    // Public pages
+
     switch (page) {
-      case 'login': return <Auth isInitialLogin={true} />;
-      case 'register': return <Auth isInitialLogin={false} />;
-      case 'about': return <AboutPage />;
-      case 'help': return <HelpPage />;
-      default: return <LandingPage setPage={setPage} />;
+      case 'login': return <main className="fade-in" key={page}><Auth isInitialLogin={true} /></main>;
+      case 'register': return <main className="fade-in" key={page}><Auth isInitialLogin={false} /></main>;
+      default: return <main className="fade-in" key={page}><LandingPage setPage={setPage} /></main>;
     }
   };
 

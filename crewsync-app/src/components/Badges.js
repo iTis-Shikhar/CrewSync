@@ -1,8 +1,6 @@
 import React from 'react';
 
-// This component receives a list of earned badges and displays them.
 function Badges({ earnedBadges }) {
-  // A predefined list of all possible badges and their details
   const allBadges = {
     firstShift: { 
       icon: '🎉', 
@@ -14,8 +12,12 @@ function Badges({ earnedBadges }) {
       title: 'Punctual Pro', 
       description: 'You have a perfect attendance record. Amazing!' 
     },
-    // We can add more badges here in the future
   };
+
+  // THIS IS THE SAFETY CHECK: If earnedBadges is not a valid array, don't render anything.
+  if (!Array.isArray(earnedBadges)) {
+    return null;
+  }
 
   return (
     <div className="badges-section">
