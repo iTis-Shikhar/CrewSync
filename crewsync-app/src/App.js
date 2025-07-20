@@ -1,8 +1,9 @@
 import React, { useState, useEffect, createContext } from 'react';
 import './App.css';
 
-// Import all our components
+// Import all our components, including the new spinner
 import Navbar from './components/Navbar';
+import LoadingSpinner from './components/LoadingSpinner'; // <-- NEW
 import LandingPage from './components/LandingPage';
 import Auth from './components/Auth';
 import AdminDashboard from './components/AdminDashboard';
@@ -31,7 +32,6 @@ function App() {
   const [page, setPage] = useState('landing');
   const [selectedEventId, setSelectedEventId] = useState(null);
 
-  // THIS IS THE CORRECTED CONFIGURATION OBJECT
   const firebaseConfig = {
     apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
     authDomain: "crewsynchackathon.firebaseapp.com",
@@ -42,51 +42,46 @@ function App() {
   };
 
   useEffect(() => {
-    try {
-      const app = initializeApp(firebaseConfig);
-      const authInstance = getAuth(app);
-      const dbInstance = getFirestore(app);
-      setAuth(authInstance);
-      setDb(dbInstance);
+    const app = initializeApp(firebaseConfig);
+    const authInstance = getAuth(app);
+    const dbInstance = getFirestore(app);
+    setAuth(authInstance);
+    setDb(dbInstance);
 
-      onAuthStateChanged(authInstance, async (user) => {
-        if (user) {
-          setUserId(user.uid);
-          const userDocRef = doc(dbInstance, "users", user.uid);
-          const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists()) {
-            const userData = userDocSnap.data();
-            setUserRole(userData.role);
-            setUserName(userData.name);
-          }
-          if (page === 'landing' || page === 'login' || page === 'register') {
-            setPage('dashboard');
-          }
-        } else {
-          setUserId(null);
-          setUserRole(null);
-          setUserName(null);
-          if (page !== 'landing' && page !== 'login' && page !== 'register') {
-            setPage('landing');
-          }
+    onAuthStateChanged(authInstance, async (user) => {
+      if (user) {
+        setUserId(user.uid);
+        const userDocRef = doc(dbInstance, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          setUserRole(userData.role);
+          setUserName(userData.name);
         }
-        setLoadingFirebase(false);
-      });
-    } catch (err) {
-      console.error("Firebase Initialization Error:", err);
+        if (page === 'landing' || page === 'login' || page === 'register') {
+          setPage('dashboard');
+        }
+      } else {
+        setUserId(null); setUserRole(null); setUserName(null);
+        if (page !== 'landing' && page !== 'login' && page !== 'register') {
+          setPage('landing');
+        }
+      }
       setLoadingFirebase(false);
-    }
-  }, [page]); // Dependency array updated to handle re-renders correctly
+    });
+  }, []); // Run only once
 
   const handleLogout = () => {
     signOut(auth).catch((error) => console.error("Logout Error:", error));
   };
 
+  // UPDATED: Use the new LoadingSpinner component
   if (loadingFirebase) {
-    return <div className="loading-container"><p>Loading CrewSync...</p></div>;
+    return <LoadingSpinner />;
   }
 
   const renderPage = () => {
+    // ... all the render logic remains the same
     if (userId) {
       if (userRole === 'admin') {
         switch (page) {
@@ -107,7 +102,6 @@ function App() {
         }
       }
     }
-    // Public pages
     switch (page) {
       case 'login': return <Auth isInitialLogin={true} />;
       case 'register': return <Auth isInitialLogin={false} />;

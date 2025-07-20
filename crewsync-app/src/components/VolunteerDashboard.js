@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { FirebaseContext } from '../App';
 import { collectionGroup, query, where, onSnapshot, updateDoc } from "firebase/firestore";
+import LoadingSpinner from './LoadingSpinner'; // Import spinner
+import EmptyState from './EmptyState'; // Import empty state
 
 function VolunteerDashboard() {
   const { db, userId } = useContext(FirebaseContext);
@@ -15,8 +17,6 @@ function VolunteerDashboard() {
       where('assignedVolunteer', '==', userId)
     );
     const unsubscribe = onSnapshot(shiftsQuery, (querySnapshot) => {
-      // The collectionGroup query gives us a special 'ref' property on each doc
-      // which is a direct path to the document, perfect for updates!
       const shiftsData = querySnapshot.docs.map(doc => ({ id: doc.id, ref: doc.ref, ...doc.data() }));
       setMyShifts(shiftsData);
       setLoading(false);
@@ -27,14 +27,10 @@ function VolunteerDashboard() {
     return () => unsubscribe();
   }, [db, userId]);
 
-  // NEW: Function for volunteer to check themselves in
   const handleCheckIn = async (shiftRef) => {
     try {
-      await updateDoc(shiftRef, {
-        attendanceStatus: 'checked-in'
-      });
+      await updateDoc(shiftRef, { attendanceStatus: 'checked-in' });
     } catch (err) {
-      console.error("Check-in failed: ", err);
       alert("Could not check in. Please try again.");
     }
   };
@@ -54,13 +50,22 @@ function VolunteerDashboard() {
   return (
     <div className="page-content">
       <h1>My Schedule</h1>
-      <p>Thank you for your commitment! Check-in for your shift when you arrive.</p>
+      <p>
+        Thank you for your commitment! Check-in for your shift when you arrive.
+      </p>
       <hr className="divider" />
+      
       <div className="my-shifts-list">
-        {loading && <p>Loading your schedule...</p>}
-        {error && <p className="error-message">{error}</p>}
-        {!loading && myShifts.length === 0 && <p>You have no assigned shifts yet.</p>}
-        {myShifts.length > 0 && (
+        {loading ? (
+          <LoadingSpinner />
+        ) : error ? (
+          <p className="error-message">{error}</p>
+        ) : myShifts.length === 0 ? (
+          <EmptyState 
+            icon={<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0h18" /></svg>}
+            message="You have no assigned shifts yet."
+          />
+        ) : (
           <ul>
             {myShifts.map(shift => (
               <li key={shift.id} className="my-shift-item">
