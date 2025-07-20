@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { FirebaseContext } from '../App';
 import { collectionGroup, query, where, onSnapshot, updateDoc } from "firebase/firestore";
-import LoadingSpinner from './LoadingSpinner'; // Import spinner
-import EmptyState from './EmptyState'; // Import empty state
+import LoadingSpinner from './LoadingSpinner';
+import EmptyState from './EmptyState';
+import Badges from './Badges';
 
 function VolunteerDashboard() {
   const { db, userId } = useContext(FirebaseContext);
@@ -27,10 +28,27 @@ function VolunteerDashboard() {
     return () => unsubscribe();
   }, [db, userId]);
 
+  const earnedBadges = useMemo(() => {
+    const badges = [];
+    const confirmedShifts = myShifts.filter(s => s.attendanceStatus === 'confirmed');
+    if (confirmedShifts.length > 0) {
+      badges.push('firstShift');
+    }
+    const checkedInShifts = myShifts.filter(s => s.attendanceStatus === 'checked-in');
+    if (confirmedShifts.length > 0 && checkedInShifts.length === 0) {
+      badges.push('punctualPro');
+    }
+    return badges;
+  }, [myShifts]);
+
+  // --- THIS IS THE LOGIC THAT WAS MISSING ---
   const handleCheckIn = async (shiftRef) => {
     try {
-      await updateDoc(shiftRef, { attendanceStatus: 'checked-in' });
+      await updateDoc(shiftRef, {
+        attendanceStatus: 'checked-in'
+      });
     } catch (err) {
+      console.error("Check-in failed: ", err);
       alert("Could not check in. Please try again.");
     }
   };
@@ -46,16 +64,19 @@ function VolunteerDashboard() {
         return <button className="btn btn-primary" onClick={() => handleCheckIn(shift.ref)}>Check-in</button>;
     }
   };
+  // --- END OF MISSING LOGIC ---
 
   return (
     <div className="page-content">
-      <h1>My Schedule</h1>
-      <p>
-        Thank you for your commitment! Check-in for your shift when you arrive.
-      </p>
+      <h1>My Dashboard</h1>
+      <p>Thank you for your commitment! Here are your achievements and assigned shifts.</p>
+      
+      <Badges earnedBadges={earnedBadges} />
+
       <hr className="divider" />
       
       <div className="my-shifts-list">
+        <h3>My Upcoming Shifts</h3>
         {loading ? (
           <LoadingSpinner />
         ) : error ? (
@@ -74,6 +95,7 @@ function VolunteerDashboard() {
                   <span className="my-shift-time">{shift.startTime} - {shift.endTime}</span>
                 </div>
                 <div className="my-shift-status">
+                  {/* This call now works correctly because the function exists */}
                   {renderStatus(shift)}
                 </div>
               </li>

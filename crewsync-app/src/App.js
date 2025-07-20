@@ -1,18 +1,20 @@
 import React, { useState, useEffect, createContext } from 'react';
 import './App.css';
 
-// Import all our components, including the new spinner
+// Import all components
 import Navbar from './components/Navbar';
-import LoadingSpinner from './components/LoadingSpinner'; // <-- NEW
+import LoadingSpinner from './components/LoadingSpinner';
 import LandingPage from './components/LandingPage';
 import Auth from './components/Auth';
-import AdminDashboard from './components/AdminDashboard';
+import AdminWorkspace from './components/AdminWorkspace';
+import Sidebar from './components/Sidebar';
 import VolunteerDashboard from './components/VolunteerDashboard';
 import AboutPage from './components/AboutPage';
 import HelpPage from './components/HelpPage';
 import CreateEventForm from './components/CreateEventForm';
 import EventList from './components/EventList';
 import ManageEventPage from './components/ManageEventPage';
+import AnalyticsPage from './components/AnalyticsPage';
 
 // Firebase Imports
 import { initializeApp } from 'firebase/app';
@@ -28,6 +30,7 @@ function App() {
   const [userRole, setUserRole] = useState(null);
   const [userName, setUserName] = useState(null);
   const [loadingFirebase, setLoadingFirebase] = useState(true);
+  const [error, setError] = useState(null); // State to hold any initialization errors
   
   const [page, setPage] = useState('landing');
   const [selectedEventId, setSelectedEventId] = useState(null);
@@ -42,57 +45,78 @@ function App() {
   };
 
   useEffect(() => {
-    const app = initializeApp(firebaseConfig);
-    const authInstance = getAuth(app);
-    const dbInstance = getFirestore(app);
-    setAuth(authInstance);
-    setDb(dbInstance);
+    // Re-introduced the try...catch block for robust error handling
+    try {
+      const app = initializeApp(firebaseConfig);
+      const authInstance = getAuth(app);
+      const dbInstance = getFirestore(app);
+      setAuth(authInstance);
+      setDb(dbInstance);
 
-    onAuthStateChanged(authInstance, async (user) => {
-      if (user) {
-        setUserId(user.uid);
-        const userDocRef = doc(dbInstance, "users", user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          const userData = userDocSnap.data();
-          setUserRole(userData.role);
-          setUserName(userData.name);
+      onAuthStateChanged(authInstance, async (user) => {
+        if (user) {
+          setUserId(user.uid);
+          const userDocRef = doc(dbInstance, "users", user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            setUserRole(userData.role);
+            setUserName(userData.name);
+          }
+          if (page === 'landing' || page === 'login' || page === 'register') {
+            setPage('dashboard');
+          }
+        } else {
+          setUserId(null); setUserRole(null); setUserName(null);
+          if (page !== 'landing' && page !== 'login' && page !== 'register') {
+            setPage('landing');
+          }
         }
-        if (page === 'landing' || page === 'login' || page === 'register') {
-          setPage('dashboard');
-        }
-      } else {
-        setUserId(null); setUserRole(null); setUserName(null);
-        if (page !== 'landing' && page !== 'login' && page !== 'register') {
-          setPage('landing');
-        }
-      }
-      setLoadingFirebase(false);
-    });
+        setLoadingFirebase(false);
+      });
+    } catch (err) {
+      console.error("Firebase Initialization Error:", err);
+      setError("Failed to initialize Firebase. Please check your configuration and internet connection.");
+      setLoadingFirebase(false); // This is crucial to stop the loading spinner on error
+    }
   }, []); // Run only once
 
   const handleLogout = () => {
     signOut(auth).catch((error) => console.error("Logout Error:", error));
   };
 
-  // UPDATED: Use the new LoadingSpinner component
   if (loadingFirebase) {
     return <LoadingSpinner />;
   }
+  
+  // If an error occurred during initialization, show an error screen
+  if (error) {
+    return <div className="error-container"><p className="error-message">{error}</p></div>;
+  }
+
+  const renderAdminContent = () => {
+    switch (page) {
+      case 'createEvent': return <CreateEventForm setPage={setPage} />;
+      case 'eventList': return <EventList setPage={setPage} setSelectedEventId={setSelectedEventId} />;
+      case 'manageEvent': return <ManageEventPage eventId={selectedEventId} setPage={setPage} />;
+      case 'analytics': return <AnalyticsPage />;
+      case 'dashboard':
+      default:
+        return <AdminWorkspace setPage={setPage} />;
+    }
+  };
 
   const renderPage = () => {
-    // ... all the render logic remains the same
     if (userId) {
       if (userRole === 'admin') {
-        switch (page) {
-          case 'dashboard': return <AdminDashboard setPage={setPage} />;
-          case 'createEvent': return <CreateEventForm setPage={setPage} />;
-          case 'eventList': return <EventList setPage={setPage} setSelectedEventId={setSelectedEventId} />;
-          case 'manageEvent': return <ManageEventPage eventId={selectedEventId} setPage={setPage} />;
-          case 'about': return <AboutPage />;
-          case 'help': return <HelpPage />;
-          default: return <AdminDashboard setPage={setPage} />;
-        }
+        return (
+          <div className="admin-layout">
+            <Sidebar page={page} setPage={setPage} />
+            <main className="admin-content">
+              {renderAdminContent()}
+            </main>
+          </div>
+        );
       } else if (userRole === 'volunteer') {
         switch (page) {
           case 'dashboard': return <VolunteerDashboard />;
@@ -102,6 +126,7 @@ function App() {
         }
       }
     }
+    // Public pages
     switch (page) {
       case 'login': return <Auth isInitialLogin={true} />;
       case 'register': return <Auth isInitialLogin={false} />;
@@ -115,7 +140,7 @@ function App() {
     <FirebaseContext.Provider value={{ auth, db, userId, userRole, userName }}>
       <div className="app-container">
         <Navbar setPage={setPage} userId={userId} userName={userName} handleLogout={handleLogout} />
-        <main>{renderPage()}</main>
+        {renderPage()}
       </div>
     </FirebaseContext.Provider>
   );

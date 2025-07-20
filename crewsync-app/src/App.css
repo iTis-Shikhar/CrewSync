@@ -749,3 +749,147 @@ body {
   font-weight: 600;
   margin: 0;
 }
+/* === Admin Layout & Sidebar Styles === */
+.admin-layout {
+  display: flex;
+  margin-top: 2rem;
+  gap: 2rem;
+}
+
+.sidebar {
+  flex-shrink: 0;
+  width: 250px;
+  background-color: #1f2937;
+  border-radius: 8px;
+  padding: 1.5rem;
+  border: 1px solid #374151;
+  align-self: flex-start; /* Makes sidebar stick to the top */
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  color: #d1d5db;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.sidebar-link:hover {
+  background-color: #374151;
+  color: #fff;
+}
+
+.sidebar-link.active {
+  background-color: #4f46e5;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+}
+
+.sidebar-link svg {
+  width: 24px;
+  height: 24px;
+}
+
+.admin-content {
+  flex-grow: 1;
+  width: 100%;
+}
+/* === Analytics Page Styles === */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.stat-card {
+  background-color: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.stat-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #9ca3af;
+  margin-top: 0.5rem;
+}
+
+.stat-card small {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-top: auto; /* Pushes the small text to the bottom */
+  padding-top: 1rem;
+}
+/* === Badges Section Styles === */
+
+.badges-section {
+  background-color: #111827;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.badges-section h3 {
+  margin-top: 0;
+  color: #fff;
+  font-size: 1.5rem;
+}
+
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.badge-card {
+  background-color: #1f2937;
+  border-radius: 6px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid #374151;
+}
+
+.badge-icon {
+  font-size: 2rem;
+}
+
+.badge-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.badge-title {
+  font-weight: 600;
+  color: #fff;
+}
+
+.badge-description {
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.no-badges-message {
+  color: #9ca3af;
+  font-style: italic;
+}
