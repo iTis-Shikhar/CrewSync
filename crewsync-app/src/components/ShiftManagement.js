@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { FirebaseContext } from '../App';
 import { collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import LoadingSpinner from './LoadingSpinner'; // Import spinner
+import EmptyState from './EmptyState'; // Import empty state
 
 function ShiftManagement({ eventId, roster }) {
   const { db } = useContext(FirebaseContext);
@@ -16,6 +18,9 @@ function ShiftManagement({ eventId, roster }) {
     const q = query(collection(db, "events", eventId, "shifts"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       setShifts(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setLoading(false);
+    }, (err) => {
+      console.error("Error fetching shifts:", err);
       setLoading(false);
     });
     return () => unsubscribe();
@@ -39,7 +44,7 @@ function ShiftManagement({ eventId, roster }) {
 
   const handleAssignVolunteer = async (shiftId) => {
     const volunteerId = assignmentState[shiftId];
-    if (!volunteerId) return;
+    if (!volunteerId) { alert("Please select a volunteer from the dropdown first."); return; }
     const volunteer = roster.find(v => v.uid === volunteerId);
     if (!volunteer) return;
     const shiftDocRef = doc(db, "events", eventId, "shifts", shiftId);
@@ -54,9 +59,7 @@ function ShiftManagement({ eventId, roster }) {
 
   const handleConfirmAttendance = async (shiftId) => {
     const shiftDocRef = doc(db, "events", eventId, "shifts", shiftId);
-    await updateDoc(shiftDocRef, {
-      attendanceStatus: 'confirmed'
-    });
+    await updateDoc(shiftDocRef, { attendanceStatus: 'confirmed' });
   };
 
   const renderAssignment = (shift) => {
@@ -86,7 +89,6 @@ function ShiftManagement({ eventId, roster }) {
       <div className="shift-container">
         <div className="create-shift-form">
           <h4>Create New Shift</h4>
-          {/* THIS IS THE FORM THAT WAS MISSING */}
           <form onSubmit={handleCreateShift}>
             <div className="form-group">
               <label htmlFor="shiftName">Shift Name / Duty</label>
@@ -105,8 +107,9 @@ function ShiftManagement({ eventId, roster }) {
         </div>
         <div className="shift-list">
           <h4>Scheduled Shifts ({shifts.length})</h4>
-          {loading && <p>Loading shifts...</p>}
-          {!loading && shifts.length > 0 ? (
+          {loading ? (
+            <LoadingSpinner />
+          ) : shifts.length > 0 ? (
             <ul>
               {shifts.map(shift => (
                 <li key={shift.id} className="shift-item">
@@ -122,7 +125,10 @@ function ShiftManagement({ eventId, roster }) {
               ))}
             </ul>
           ) : (
-            !loading && <p>No shifts created for this event yet.</p>
+            <EmptyState 
+              icon={<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.25 2.25 0 015.636 5.636m0 0A2.25 2.25 0 015.25 6H9m6 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18V6m-6 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18V6" /></svg>}
+              message="No shifts created yet."
+            />
           )}
         </div>
       </div>
