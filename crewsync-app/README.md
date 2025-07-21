@@ -1,70 +1,79 @@
-# Getting Started with Create React App
+# CrewSync - Volunteer Coordination & Shift Management
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+**Live Demo:** [**https://crewsynchackathon.web.app**]
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🚀 The Problem
 
-### `npm start`
+Managing student volunteers during large-scale events is often chaotic. Organizers struggle with messy spreadsheets, last-minute communication, and tracking who is supposed to be where and when. This leads to confusion, missed shifts, and a stressful experience for both the organizers and the dedicated volunteers.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## ✨ Our Solution
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+**CrewSync** is a real-time, role-based web application designed to replace that chaos with clarity and connection. It provides a powerful, centralized platform for event organizers to manage every aspect of their volunteer workforce, and a personalized, empowering dashboard for volunteers to stay informed and engaged.
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🔑 Key Features
 
-### `npm run build`
+### For Event Organizers (Admins)
+* **Professional Workspace:** A modern dashboard with a persistent sidebar for easy navigation between management sections.
+* **Comprehensive Event Management:** Create multi-day events with start and end dates. View all events in a clean, card-based layout.
+* **Advanced Volunteer Roster:** Instead of manually typing emails, admins can add volunteers from a searchable, multi-select directory of all registered users, making roster creation fast and error-free.
+* **Detailed Shift Scheduling:** For each event, create specific shifts with unique dates, start times, and end times.
+* **Real-Time Announcements:** Send instant announcements to all volunteers rostered for a specific event, ensuring everyone gets critical information immediately.
+* **Two-Step Attendance Tracking:** A robust system where volunteers "Check-in" and admins "Confirm Presence," creating a verifiable attendance record.
+* **Data-Driven Analytics:** A dedicated analytics page that provides at-a-glance insights into key metrics like Shift Coverage and Volunteer Attendance Rate.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### For Volunteers
+* **Personalized Dashboard:** A clean, focused view of all assigned responsibilities.
+* **Upcoming vs. Past Shifts:** The dashboard is intelligently split into "Upcoming Shifts" for active duties and a "Past Shifts" section for completed work.
+* **Permanent Work History:** When an admin confirms a volunteer's attendance, the shift is moved to a permanent, undeletable work history, providing the volunteer with a lasting record of their contributions.
+* **Live Announcements:** Receive instant updates and messages from the event organizer directly on the dashboard.
+* **Gamification:** Earn badges for achievements like completing the first shift and maintaining a perfect attendance record, encouraging engagement and motivation.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🛠️ Tech Stack
 
-### `npm run eject`
+* **Frontend:** React.js (with Hooks & Context API for state management)
+* **Backend & Database:** Google Firebase
+    * **Firestore:** For our real-time, NoSQL database.
+    * **Firebase Authentication:** For secure, role-based user management.
+    * **Firebase Hosting:** For fast, global deployment.
+* **Styling:** Custom CSS with a modern "Glassmorphism" theme and subtle animations.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## ⚙️ Running the Project Locally
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+1.  Clone the repository:
+    ```bash
+    git clone [https://github.com/iTis-Shikhar/CrewSync.git]
+    ```
+2.  Navigate into the project directory:
+    ```bash
+    cd crewsync-app
+    ```
+3.  Install dependencies:
+    ```bash
+    npm install
+    ```
+4.  Create a `.env` file in the root of the project and add your Firebase API Key:
+    ```
+    REACT_APP_FIREBASE_API_KEY=YourApiKeyHere
+    ```
+5.  Start the development server:
+    ```bash
+    npm start
+    ```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
+## 🚀 Next Steps & Future Ideas
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+* **Shift Swap Marketplace:** Allow volunteers to request swaps for their shifts, which admins can then approve.
+* **In-App Chat:** Implement a simple chat feature for direct communication between organizers and volunteers within an event.
+* **AI-Powered Scheduling:** Develop a feature that suggests the best volunteer for a shift based on their skills and past performance.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
