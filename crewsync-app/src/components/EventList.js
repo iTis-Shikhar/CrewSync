@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { FirebaseContext } from '../App';
 import { collection, onSnapshot, query, where, doc, deleteDoc, getDocs } from "firebase/firestore";
-import LoadingSpinner from './LoadingSpinner'; // Import spinner
-import EmptyState from './EmptyState'; // Import empty state
+import LoadingSpinner from './LoadingSpinner';
+import EmptyState from './EmptyState';
 
 function EventList({ setPage, setSelectedEventId }) {
   const { db, userId } = useContext(FirebaseContext);
@@ -48,7 +48,6 @@ function EventList({ setPage, setSelectedEventId }) {
     setPage('manageEvent');
   };
 
-  // Use the spinner while loading
   if (loading) return <LoadingSpinner />;
   if (error) return <p className="error-message">{error}</p>;
 
@@ -61,7 +60,6 @@ function EventList({ setPage, setSelectedEventId }) {
         </button>
       </div>
       {events.length === 0 ? (
-        // Use the new EmptyState component
         <EmptyState 
           icon={<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
           message="You haven't created any events yet."
@@ -71,7 +69,10 @@ function EventList({ setPage, setSelectedEventId }) {
           {events.map(event => (
             <li key={event.id} className="event-item-card">
               <h4>{event.name}</h4>
-              <p className="event-date">{event.date}</p>
+              {/* UPDATED: Display date range */}
+              <p className="event-date">
+                {event.startDate} {event.endDate && `to ${event.endDate}`}
+              </p>
               <p className="event-description">{event.description}</p>
               <div className="event-actions">
                 <button className="btn btn-danger" onClick={() => handleDeleteEvent(event.id)}>Delete</button>

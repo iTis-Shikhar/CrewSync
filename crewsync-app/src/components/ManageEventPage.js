@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { FirebaseContext } from '../App';
-import { doc, getDoc, collection, addDoc, query, where, getDocs, onSnapshot, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, onSnapshot, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import ShiftManagement from './ShiftManagement';
+import Announcements from './Announcements';
+import VolunteerSelector from './VolunteerSelector';
 
 function ManageEventPage({ eventId, setPage }) {
   const { db } = useContext(FirebaseContext);
@@ -9,20 +11,20 @@ function ManageEventPage({ eventId, setPage }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [roster, setRoster] = useState([]);
-  const [volunteerEmail, setVolunteerEmail] = useState('');
-  const [addVolunteerError, setAddVolunteerError] = useState('');
-  const [isAdding, setIsAdding] = useState(false);
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
 
   useEffect(() => {
     if (!db || !eventId) return;
-    const getEventData = async () => {
-      const docRef = doc(db, "events", eventId);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) { setEvent({ id: docSnap.id, ...docSnap.data() }); } 
-      else { setError("Event not found."); }
+    const docRef = doc(db, "events", eventId);
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setEvent({ id: docSnap.id, ...docSnap.data() });
+      } else {
+        setError("Event not found.");
+      }
       setLoading(false);
-    };
-    getEventData();
+    });
+    return () => unsubscribe();
   }, [db, eventId]);
 
   useEffect(() => {
@@ -34,86 +36,68 @@ function ManageEventPage({ eventId, setPage }) {
     return () => unsubscribe();
   }, [db, eventId]);
 
-  const handleAddVolunteer = async (e) => {
-    e.preventDefault();
-    setIsAdding(true);
-    setAddVolunteerError('');
-    try {
-      const q = query(collection(db, "users"), where("email", "==", volunteerEmail), where("role", "==", "volunteer"));
-      const querySnapshot = await getDocs(q);
-      if (querySnapshot.empty) throw new Error("No volunteer found with this email.");
-      const volunteerData = querySnapshot.docs[0].data();
-      const volunteerId = querySnapshot.docs[0].id;
-      await addDoc(collection(db, "events", eventId, "volunteers"), { uid: volunteerId, email: volunteerData.email });
-      setVolunteerEmail('');
-    } catch (err) {
-      setAddVolunteerError(err.message);
-    } finally {
-      setIsAdding(false);
-    }
-  };
+  // handleAddSelected is now inside VolunteerSelector, this page doesn't need it.
 
-  const handleRemoveVolunteer = async (volunteerDocId) => {
+  const handleRemoveVolunteer = async (volunteerDocId, volunteerUid) => {
+    // 1. Remove the volunteer from the subcollection
     await deleteDoc(doc(db, "events", eventId, "volunteers", volunteerDocId));
+    
+    // 2. Remove the volunteer's UID from the master list on the event document
+    const eventDocRef = doc(db, "events", eventId);
+    await updateDoc(eventDocRef, {
+      volunteerUids: arrayRemove(volunteerUid)
+    });
   };
 
   if (loading) return <p>Loading event details...</p>;
   if (error) return <p className="error-message">{error}</p>;
 
   return (
-    <div className="page-content">
-      <div className="list-header">
-        <h1>Manage: {event?.name}</h1>
-        <button className="btn btn-secondary" onClick={() => setPage('eventList')}>&larr; Back to Event List</button>
-      </div>
-      <p className="event-date">Date: {event?.date}</p>
-      <p>{event?.description}</p>
-      <hr className="divider" />
-      <div className="management-section">
-        <h3>Volunteer Roster</h3>
-        <div className="roster-container">
-          <div className="add-volunteer-form">
-            <h4>Add Volunteer to Roster</h4>
-            {/* THIS IS THE FORM THAT WAS MISSING */}
-            <form onSubmit={handleAddVolunteer}>
-              <p>Enter the email of a registered volunteer to add them to this event.</p>
-              <div className="form-group">
-                <label htmlFor="volunteerEmail">Volunteer Email</label>
-                <input 
-                  type="email" 
-                  id="volunteerEmail" 
-                  value={volunteerEmail} 
-                  onChange={(e) => setVolunteerEmail(e.target.value)} 
-                  placeholder="volunteer@example.com"
-                  required 
-                />
-              </div>
-              <button type="submit" className="btn btn-primary" disabled={isAdding}>
-                {isAdding ? 'Adding...' : 'Add Volunteer'}
-              </button>
-              {addVolunteerError && <p className="error-message">{addVolunteerError}</p>}
-            </form>
-          </div>
-          <div className="roster-list">
-            <h4>Current Roster ({roster.length})</h4>
-            {roster.length > 0 ? (
-              <ul>
-                {roster.map(volunteer => (
-                  <li key={volunteer.id} className="roster-item">
-                    <span>{volunteer.email}</span>
-                    <button className="btn-remove" onClick={() => handleRemoveVolunteer(volunteer.id)}>×</button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No volunteers have been added to this event yet.</p>
-            )}
+    <>
+      {isSelectorOpen && (
+        <VolunteerSelector 
+          eventId={eventId} 
+          roster={roster} 
+          onClose={() => setIsSelectorOpen(false)} 
+        />
+      )}
+      <div className="page-content">
+        <div className="list-header">
+          <h1>Manage: {event?.name}</h1>
+          <button className="btn btn-secondary" onClick={() => setPage('eventList')}>&larr; Back to Event List</button>
+        </div>
+        <p className="event-date">Date: {event?.startDate} {event?.endDate && `to ${event?.endDate}`}</p>
+        <p>{event?.description}</p>
+        <hr className="divider" />
+        <Announcements eventId={eventId} />
+        <hr className="divider" />
+        <div className="management-section">
+          <h3>Volunteer Roster</h3>
+          <div className="roster-container">
+            <div className="add-volunteer-box">
+              <h4>Add Volunteers</h4>
+              <p>Select from the directory to add multiple volunteers to this event's roster at once.</p>
+              <button className="btn btn-primary" onClick={() => setIsSelectorOpen(true)}>Add from Directory</button>
+            </div>
+            <div className="roster-list">
+              <h4>Current Roster ({roster.length})</h4>
+              {roster.length > 0 ? (
+                <ul>
+                  {roster.map(volunteer => (
+                    <li key={volunteer.id} className="roster-item">
+                      <span>{volunteer.email}</span>
+                      <button className="btn-remove" onClick={() => handleRemoveVolunteer(volunteer.id, volunteer.uid)}>×</button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (<p>No volunteers have been added to this event yet.</p>)}
+            </div>
           </div>
         </div>
+        <hr className="divider" />
+        <ShiftManagement eventId={eventId} roster={roster} />
       </div>
-      <hr className="divider" />
-      <ShiftManagement eventId={eventId} roster={roster} />
-    </div>
+    </>
   );
 }
 

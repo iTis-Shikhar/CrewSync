@@ -1,26 +1,34 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { FirebaseContext } from '../App';
-import { collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc } from "firebase/firestore";
-import LoadingSpinner from './LoadingSpinner'; // Import spinner
-import EmptyState from './EmptyState'; // Import empty state
+import { collection, addDoc, onSnapshot, query, where, doc, updateDoc, deleteDoc, setDoc } from "firebase/firestore";
+import LoadingSpinner from './LoadingSpinner';
+import EmptyState from './EmptyState';
 
 function ShiftManagement({ eventId, roster }) {
   const { db } = useContext(FirebaseContext);
   const [shiftName, setShiftName] = useState('');
+  const [shiftDate, setShiftDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [shifts, setShifts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [assignmentState, setAssignmentState] = useState({});
+  const [allVolunteers, setAllVolunteers] = useState([]);
+
+  useEffect(() => {
+    if (!db) return;
+    const q = query(collection(db, "users"), where("role", "==", "volunteer"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      setAllVolunteers(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+    return () => unsubscribe();
+  }, [db]);
 
   useEffect(() => {
     if (!db || !eventId) return;
     const q = query(collection(db, "events", eventId, "shifts"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       setShifts(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setLoading(false);
-    }, (err) => {
-      console.error("Error fetching shifts:", err);
       setLoading(false);
     });
     return () => unsubscribe();
@@ -31,10 +39,11 @@ function ShiftManagement({ eventId, roster }) {
     if (!db) return;
     try {
       await addDoc(collection(db, "events", eventId, "shifts"), {
-        name: shiftName, startTime, endTime, assignedVolunteer: null, assignedVolunteerEmail: null,
-        attendanceStatus: 'unconfirmed'
+        name: shiftName, date: shiftDate, startTime, endTime, 
+        assignedVolunteer: null, assignedVolunteerEmail: null, assignedVolunteerName: null,
+        attendanceStatus: 'unconfirmed', eventId: eventId
       });
-      setShiftName(''); setStartTime(''); setEndTime('');
+      setShiftName(''); setShiftDate(''); setStartTime(''); setEndTime('');
     } catch (err) { console.error("Error creating shift: ", err); }
   };
 
@@ -45,11 +54,13 @@ function ShiftManagement({ eventId, roster }) {
   const handleAssignVolunteer = async (shiftId) => {
     const volunteerId = assignmentState[shiftId];
     if (!volunteerId) { alert("Please select a volunteer from the dropdown first."); return; }
-    const volunteer = roster.find(v => v.uid === volunteerId);
+    const volunteer = allVolunteers.find(v => v.id === volunteerId);
     if (!volunteer) return;
     const shiftDocRef = doc(db, "events", eventId, "shifts", shiftId);
     await updateDoc(shiftDocRef, {
-      assignedVolunteer: volunteer.uid, assignedVolunteerEmail: volunteer.email
+      assignedVolunteer: volunteer.uid, 
+      assignedVolunteerEmail: volunteer.email,
+      assignedVolunteerName: volunteer.name
     });
   };
 
@@ -57,26 +68,31 @@ function ShiftManagement({ eventId, roster }) {
     await deleteDoc(doc(db, "events", eventId, "shifts", shiftId));
   };
 
-  const handleConfirmAttendance = async (shiftId) => {
-    const shiftDocRef = doc(db, "events", eventId, "shifts", shiftId);
-    await updateDoc(shiftDocRef, { attendanceStatus: 'confirmed' });
+  const handleConfirmAttendance = async (shift) => {
+    try {
+      await setDoc(doc(db, "workHistory", shift.id), {
+        ...shift,
+        attendanceStatus: 'confirmed'
+      });
+      await deleteDoc(doc(db, "events", eventId, "shifts", shift.id));
+    } catch (err) {
+      console.error("Error confirming attendance: ", err);
+      alert("Failed to confirm attendance.");
+    }
   };
 
   const renderAssignment = (shift) => {
     if (shift.attendanceStatus === 'checked-in') {
-      return <button className="btn btn-confirm" onClick={() => handleConfirmAttendance(shift.id)}>Confirm Presence</button>;
-    }
-    if (shift.attendanceStatus === 'confirmed') {
-      return <span className="status-confirmed">Confirmed</span>;
+      return <button className="btn btn-confirm" onClick={() => handleConfirmAttendance(shift)}>Confirm Presence</button>;
     }
     if (shift.assignedVolunteer) {
-      return <span className="assigned-volunteer">{shift.assignedVolunteerEmail}</span>;
+      return <span className="assigned-volunteer">{shift.assignedVolunteerName || shift.assignedVolunteerEmail}</span>;
     }
     return (
       <div className="assign-controls">
         <select className="role-select" onChange={(e) => handleSelectionChange(shift.id, e.target.value)}>
           <option value="">Assign a volunteer...</option>
-          {roster.map(v => <option key={v.uid} value={v.uid}>{v.email}</option>)}
+          {allVolunteers.filter(v => roster.some(r => r.uid === v.id)).map(v => <option key={v.uid} value={v.uid}>{v.name} ({v.email})</option>)}
         </select>
         <button className="btn btn-secondary" onClick={() => handleAssignVolunteer(shift.id)}>Assign</button>
       </div>
@@ -95,6 +111,10 @@ function ShiftManagement({ eventId, roster }) {
               <input type="text" id="shiftName" value={shiftName} onChange={(e) => setShiftName(e.target.value)} required placeholder="e.g., Registration Desk" />
             </div>
             <div className="form-group">
+              <label htmlFor="shiftDate">Date</label>
+              <input type="date" id="shiftDate" value={shiftDate} onChange={(e) => setShiftDate(e.target.value)} required />
+            </div>
+            <div className="form-group">
               <label htmlFor="startTime">Start Time</label>
               <input type="time" id="startTime" value={startTime} onChange={(e) => setStartTime(e.target.value)} required />
             </div>
@@ -107,20 +127,20 @@ function ShiftManagement({ eventId, roster }) {
         </div>
         <div className="shift-list">
           <h4>Scheduled Shifts ({shifts.length})</h4>
-          {loading ? (
-            <LoadingSpinner />
-          ) : shifts.length > 0 ? (
+          {loading ? <LoadingSpinner /> : shifts.length > 0 ? (
             <ul>
               {shifts.map(shift => (
-                <li key={shift.id} className="shift-item">
+                <li key={shift.id} className="shift-item-card">
                   <div className="shift-details">
                     <span className="shift-name">{shift.name}</span>
-                    <span className="shift-time">{shift.startTime} - {shift.endTime}</span>
+                    <span className="shift-time">{shift.date} &bull; {shift.startTime} - {shift.endTime}</span>
                   </div>
-                  <div className="shift-assignment">
-                    {renderAssignment(shift)}
+                  <div className="shift-actions">
+                    <div className="shift-assignment">
+                      {renderAssignment(shift)}
+                    </div>
+                    <button className="btn-remove" onClick={() => handleDeleteShift(shift.id)}>×</button>
                   </div>
-                  <button className="btn-remove" onClick={() => handleDeleteShift(shift.id)}>×</button>
                 </li>
               ))}
             </ul>
