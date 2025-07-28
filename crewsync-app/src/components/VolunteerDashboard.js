@@ -35,25 +35,34 @@ function VolunteerDashboard() {
     });
     return () => unsubscribeHistory;
   }, [db, userId]);
-
-  // Fetch announcements
+  
+  // Fetch announcements for events the user is part of
   useEffect(() => {
-    if (upcomingShifts.length === 0) {
-      setAnnouncements([]);
-      return;
-    };
-    const eventIds = [...new Set(upcomingShifts.map(shift => shift.ref.parent.parent.id))];
-    let allAnnouncements = {};
-    const unsubscribers = eventIds.map(eventId => {
-      const announcementsQuery = query(collection(db, 'events', eventId, 'announcements'), orderBy('createdAt', 'desc'));
-      return onSnapshot(announcementsQuery, (querySnapshot) => {
-        querySnapshot.forEach(doc => { allAnnouncements[doc.id] = { id: doc.id, ...doc.data() }; });
-        const sortedAnnouncements = Object.values(allAnnouncements).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-        setAnnouncements(sortedAnnouncements);
+    if (!db || !userId) return;
+    const eventsQuery = query(collection(db, 'events'), where('volunteerUids', 'array-contains', userId));
+    const unsubscribeEvents = onSnapshot(eventsQuery, (querySnapshot) => {
+      const eventIds = querySnapshot.docs.map(doc => doc.id);
+      if (eventIds.length === 0) {
+        setAnnouncements([]);
+        return;
+      }
+      
+      let allAnnouncements = {};
+      const unsubscribers = eventIds.map(eventId => {
+        const announcementsQuery = query(collection(db, 'events', eventId, 'announcements'), orderBy('createdAt', 'desc'));
+        return onSnapshot(announcementsQuery, (announcementSnapshot) => {
+          announcementSnapshot.forEach(doc => {
+            allAnnouncements[doc.id] = { id: doc.id, ...doc.data() };
+          });
+          const sortedAnnouncements = Object.values(allAnnouncements).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+          setAnnouncements(sortedAnnouncements);
+        });
       });
+      return () => unsubscribers.forEach(unsub => unsub());
     });
-    return () => unsubscribers.forEach(unsub => unsub());
-  }, [db, upcomingShifts]);
+    return () => unsubscribeEvents();
+  }, [db, userId]);
+
 
   const earnedBadges = useMemo(() => {
     if (!pastShifts) return []; 
@@ -82,7 +91,7 @@ function VolunteerDashboard() {
       <h1>My Dashboard</h1>
       <p>Thank you for your commitment! Here are your achievements, announcements, and schedule.</p>
       
-      {/* THIS IS THE CORRECTED ANNOUNCEMENT FEED */}
+      {/* THIS IS THE RESTORED ANNOUNCEMENT FEED */}
       {announcements.length > 0 && (
         <div className="announcement-feed">
           <h3>Recent Announcements</h3>
